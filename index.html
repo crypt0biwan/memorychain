@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Memorychain</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <style type="text/css">
+        .card { width: 12rem; }
+        .card h5 { font-size: 1.10rem; }
+    </style>
+</head>
+    <body>
+        <div class="container mb-3">
+            <h3>Memorychain</h3>
+            <i>When you put in your address below it queries which Memorychain cards are in that addres and which cards are missing.</i>
+        </div>
+
+        <form>
+            <div class="container mb-5">
+                <div class="mb-2">
+                    <label for="btcAddress" class="form-label"><strong>Check address</strong></label>
+                    <!-- Using Hal Finneys address from the first BTC tx as a placeholder :-) -->
+                    <input type="text" required class="form-control" id="btcAddress" placeholder="1Q2TWHE3GMdB6BZKafqwxXtWAWgFt5Jvm3">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary mb-3">Submit</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="container mb-5">
+            <div id="result"></div>
+        </div>
+        
+        <div class="container">
+            <h3>Overview of all cards, sorted alphabetically</h3>
+        </div>
+
+        <div class="container text-center">
+            <div id="cards" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6">
+            </div>
+        </div>
+
+        <div class="container text-center">
+            <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+                <div class="col-md-4 d-flex align-items-center">
+                    <span class="text-muted">Made by obi, source: <a target="_blank" href="https://github.com/crypt0biwan/memorychain">github</a>, contact: <a target="_blank" href="https://twitter.com/crypt0biwan">twitter</a></span>
+                </div>
+            </footer>
+        </div>
+
+        <script>
+            const API_URL = 'https://xchain.io/api/'
+            const row = document.getElementById('cards')
+            const cards = [
+                { name: 'BCCARD', supply: 200, img: 'BCCARD.jpg' },
+                { name: 'BIGONESTEP', supply: 300, img: 'BIGONESTEP.png' },
+                { name: 'BIPBARD', supply: 300, img: 'BIPBARD.gif' },
+                { name: 'BIRTHOFTHBTC', supply: 10000, img: 'BIRTHOFTHBTC.png' },
+                { name: 'BITCOINERS', supply: 300, img: 'BITCOINERS.png' },
+                { name: 'BITCOINGIRL', supply: 1000, img: 'BITCOINGIRL.jpg' },
+                { name: 'BITISBAN', supply: 10000, img: 'BITISBAN.png' },
+                { name: 'BITZENY', supply: 222, img: 'BITZENY.png' },
+                { name: 'BMANTBLEED', supply: 1000, img: 'BMANTBLEED.gif' },
+                { name: 'BOTCOINER', supply: 1000, img: 'BOTCOINER.png' },
+                { name: 'BTCFORK', supply: 100, img: 'BTCFORK.png' },
+                { name: 'BTCTATTOO', supply: 150, img: 'BTCTATTOO.jpg' },
+                { name: 'BUNRETSU', supply: 10000, img: 'BUNRETSU.png' },
+                { name: 'CCGANNEN', supply: 100, img: 'CCGANNEN.png' },
+                { name: 'CCMC', supply: 10000, img: 'CCMC.png' },
+                { name: 'COUPLEGOX', supply: 100, img: 'COUPLEGOX.png' },
+                { name: 'CRYPTOGIRLS', supply: 1000, img: 'CRYPTOGIRLS.jpg' },
+                { name: 'CRYPTOHOLIC', supply: 100, img: 'CRYPTOHOLIC.png' },
+                { name: 'CRYPTORPG', supply: 1000, img: 'CRYPTORPG.png' },
+                { name: 'DECENTORACLE', supply: 555, img: 'DECENTORACLE.png' },
+                { name: 'DOGECHAN', supply: 500, img: 'DOGECHAN.png' },
+                { name: 'DOGETHEREUM', supply: 500, img: 'DOGETHEREUM.png' },
+                { name: 'EATSUSHI', supply: 200, img: 'EATSUSHI.png' },
+                { name: 'ECASHPAPER', supply: 100, img: 'ECASHPAPER.png' },
+                { name: 'ECNUKO', supply: 100, img: 'ECNUKO.png' },
+                { name: 'ECOBITMAN', supply: 100, img: 'ECOBITMAN.png' },
+                { name: 'ECOBITREFUND', supply: 200, img: 'ECOBITREFUND.png' },
+                { name: 'ECOBITWOMAN', supply: 100, img: 'ECOBITWOMAN.png' },
+                { name: 'ESTOPIA', supply: 10000, img: 'ESTOPIA.png' },
+                { name: 'ETCCHAN', supply: 500, img: 'ETCCHAN.png' },
+                { name: 'ETHCHAN', supply: 500, img: 'ETHCHAN.png' },
+                { name: 'ETHEREUMGIRL', supply: 1000, img: 'ETHEREUMGIRL.jpg' },
+                { name: 'ETHFRONTIER', supply: 100, img: 'ETHFRONTIER.png' },
+                { name: 'ETHHOMESTEAD', supply: 100, img: 'ETHHOMESTEAD.png' },
+                { name: 'FICOA', supply: 10000, img: 'FICOA.png' },
+                { name: 'FICOB', supply: 10000, img: 'FICOB.png' },
+                { name: 'FORESIGHTMAN', supply: 100, img: 'FORESIGHTMAN.png' },
+                { name: 'FOREVERP', supply: 100, img: 'FOREVERP.jpg' },
+                { name: 'GAMESTART', supply: 100, img: 'GAMESTART.png' },
+                { name: 'GARA', supply: 10000, img: 'GARA.png' },
+                { name: 'GARIKUSON', supply: 10000, img: 'GARIKUSON.png' },
+                { name: 'GODDESSNEM', supply: 10000, img: 'GODDESSNEM.png' },
+                { name: 'GOXANDTHEDAO', supply: 100, img: 'GOXANDTHEDAO.gif' },
+                { name: 'GRIPGIRL', supply: 100, img: 'GRIPGIRL.png' },
+                { name: 'HALVING', supply: 10000, img: 'HALVING.png' },
+                { name: 'HIGE', supply: 10000, img: 'HIGE.png' },
+                { name: 'HODLONME', supply: 100, img: 'HODLONME.gif' },
+                { name: 'HOGEHOGE', supply: 300, img: 'HOGEHOGE.png' },
+                { name: 'ICOVACATION', supply: 10000, img: 'ICOVACATION.png' },
+                { name: 'INAGO', supply: 1000, img: 'INAGO.png' },
+                { name: 'JBWS', supply: 200, img: 'JBWS.png' },
+                { name: 'KAKUGALEE', supply: 10000, img: 'KAKUGALEE.png' },
+                { name: 'KINGOFCC', supply: 555, img: 'KINGOFCC.png' },
+                { name: 'KOJITHECUPID', supply: 777, img: 'KOJITHECUPID.png' },
+                { name: 'KUSACOIN', supply: 10000, img: 'KUSACOIN.png' },
+                { name: 'LORDOTHEMOON', supply: 200, img: 'LORDOTHEMOON.jpg' },
+                { name: 'MAIDCHAN', supply: 500, img: 'MAIDCHAN.png' },
+                { name: 'MAIDSAFECHAN', supply: 1000, img: 'MAIDSAFECHAN-295x413.gif' },
+                { name: 'MASTERINGPC', supply: 555, img: 'MASTERINGPC-1.png' },
+                { name: 'MCCOMER', supply: 10000, img: 'MCCOMER.gif' },
+                { name: 'MCHARVESTING', supply: 1000, img: 'MCHARVESTING.png' },
+                { name: 'MCRIPPLENW', supply: 1000, img: 'MCRIPPLENW.jpg' },
+                { name: 'MCSEVEN', supply: 1500, img: 'MCSEVEN.png' },
+                { name: 'MCWASHOY', supply: 841, img: 'MCWASHOY.gif' },
+                { name: 'MEIGEN', supply: 1000, img: 'MEIGEN.png' },
+                { name: 'MEMEPARTNERS', supply: 150, img: 'MEMEPARTNERS.jpg' },
+                { name: 'MGOINVADER', supply: 100, img: 'MGOINVADER.png' },
+                { name: 'MIKEHEARNALT', supply: 317, img: 'MIKEHEARNALT.png' },
+                { name: 'MINERB', supply: 1000, img: 'MINERB.png' },
+                { name: 'MOMEJINJA', supply: 10000, img: 'MOMEJINJA.png' },
+                { name: 'MONACOINGIRL', supply: 1000, img: 'MONACOINGIRL.jpg' },
+                { name: 'MONAPEPECARD', supply: 150, img: 'MONAPEPECARD.png' },
+                { name: 'MONASEGWIT', supply: 100, img: 'MONASEGWIT.png' },
+                { name: 'MONASUMMER', supply: 999, img: 'MONASUMMER.png' },
+                { name: 'MONATATTOO', supply: 100, img: 'MONATATTOO.png' },
+                { name: 'MONEROGIRL', supply: 1000, img: 'MONEROGIRL.jpg' },
+                { name: 'MPMEGASHOCK', supply: 10000, img: 'MPMEGASHOCK.png' },
+                { name: 'MRHANGENKI', supply: 200, img: 'MRHANGENKI.jpg' },
+                { name: 'MTGDAY', supply: 150, img: 'MTGDAY.png' },
+                { name: 'NEMANGEL', supply: 1000, img: 'NEMANGEL.png' },
+                { name: 'NEMBERBECOOL', supply: 10000, img: 'NEMBERBECOOL.png' },
+                { name: 'NEMGIRL', supply: 1000, img: 'NEMGIRL.png' },
+                { name: 'NEMPIZZADAY', supply: 400, img: 'NEMPIZZADAY.gif' },
+                { name: 'NEOCHAN', supply: 5000, img: 'NEOCHAN.png' },
+                { name: 'NHARVEST', supply: 100, img: 'NHARVEST.png' },
+                { name: 'NUMERAIAI', supply: 10000, img: 'NUMERAIAI.png' },
+                { name: 'OAHF', supply: 300, img: 'OAHF.gif' },
+                { name: 'OMATSURI', supply: 10000, img: 'OMATSURI.gif' },
+                { name: 'ORIGINOFMC', supply: 100, img: 'ORIGINOFMC.jpg' },
+                { name: 'ORIGINOFSOG', supply: 100, img: 'ORIGINOFSOG.jpg' },
+                { name: 'PENPENBTC', supply: 100, img: 'PENPENBTC.png' },
+                { name: 'PEPEMODOKI', supply: 151, img: 'PEPEMODOKI.png' },
+                { name: 'PICKUPKUSA', supply: 200, img: 'PICKUPKUSA.png' },
+                { name: 'POTCOINER', supply: 300, img: 'POTCOINER.png' },
+                { name: 'POWMONSTER', supply: 100, img: 'POWMONSTER.png' },
+                { name: 'PUMPEPE', supply: 10000, img: 'PUMPEPE.gif' },
+                { name: 'QUANTUMPC', supply: 100, img: 'QUANTUMPC.gif' },
+                { name: 'RAMENSOG', supply: 150, img: 'RAMENSOG.png' },
+                { name: 'RAPPLEBOY', supply: 500, img: 'RAPPLEBOY.png' },
+                { name: 'REJECTEDVIX', supply: 700, img: 'REJECTEDVIX.png' },
+                { name: 'RIPPLEGIRL', supply: 1000, img: 'RIPPLEGIRL.jpg' },
+                { name: 'SARUTOBIISL', supply: 10000, img: 'SARUTOBIISL.gif' },
+                { name: 'SATOSHICLUB', supply: 1000, img: 'SATOSHICLUB.png' },
+                { name: 'SCAMCOINSHOP', supply: 100, img: 'SCAMCOINSHOP.png' },
+                { name: 'SCAMHAZARD', supply: 100, img: 'SCAMHAZARD.png' },
+                { name: 'SEGWITSHI', supply: 500, img: 'SEGWITSHI.png' },
+                { name: 'SELFGOX', supply: 200, img: 'SELFGOX.png' },
+                { name: 'SHITCOINER', supply: 100, img: 'SHITCOINER.gif' },
+                { name: 'SISUMAISTART', supply: 300, img: 'SISUMAISTART.png' },
+                { name: 'SMARTDUBAI', supply: 150, img: 'SMARTDUBAI.png' },
+                { name: 'SNWARMHEART', supply: 1000, img: 'SNWARMHEART.png' },
+                { name: 'SOGRAID', supply: 10000, img: 'SOGRAID.png' },
+                { name: 'SOOOOOOOOOON', supply: 200, img: 'SOOOOOOOOOON.png' },
+                { name: 'SROADCAMEL', supply: 500, img: 'SROADCAMEL.png' },
+                { name: 'STATUSICO', supply: 10000, img: 'STATUSICO.png' },
+                { name: 'TAKABCOIN', supply: 300, img: 'TAKABCOIN.png' },
+                { name: 'TAKANE', supply: 10000, img: 'TAKANE.png' },
+                { name: 'TAKARAGPS', supply: 10000, img: 'TAKARAGPS.gif' },
+                { name: 'TAKARAJPI', supply: 108, img: 'TAKARAJPI.png' },
+                { name: 'TANUKJ', supply: 100, img: 'TANUKJ.png' },
+                { name: 'TFORM', supply: 100, img: 'TFORM.png' },
+                { name: 'THEAKANPANY', supply: 1300, img: 'THEAKANPANY.png' },
+                { name: 'THEARUKAMO', supply: 2000, img: 'THEARUKAMO.png' },
+                { name: 'THEBYZANTINE', supply: 100, img: 'THEBYZANTINE.png' },
+                { name: 'THECEMETERY', supply: 100, img: 'THECEMETERY.png' },
+                { name: 'THEDAODEAD', supply: 100, img: 'THEDAODEAD.png' },
+                { name: 'THEFINTECH', supply: 100, img: 'THEFINTECH.gif' },
+                { name: 'THEGODTANU', supply: 100, img: 'THEGODTANU.gif' },
+                { name: 'THEICODEAD', supply: 100, img: 'THEICODEAD.png' },
+                { name: 'THENIAGARA', supply: 10000, img: 'THENIAGARA.png' },
+                { name: 'THETIMES', supply: 100, img: 'THETIMES.png' },
+                { name: 'TLOD', supply: 100, img: 'TLOD.png' },
+                { name: 'TOTHEMOONCD', supply: 200, img: 'TOTHEMOONCD.jpg' },
+                { name: 'TREZORMYLOVE', supply: 555, img: 'TREZORMYLOVE.png' },
+                { name: 'TTRUSTCARD', supply: 500, img: 'TTRUSTCARD.png' },
+                { name: 'UASFARMY', supply: 500, img: 'UASFARMY.png' },
+                { name: 'UNDERCONTROL', supply: 108, img: 'UNDERCONTROL.png' },
+                { name: 'UNTRACEABLE', supply: 300, img: 'UNTRACEABLE.png' },
+                { name: 'WACKNAKAMOTO', supply: 10000, img: 'WACKNAKAMOTO.png' },
+                { name: 'WACKSOG', supply: 10000, img: 'WACKSOG.png' },
+                { name: 'WACKWATANABE', supply: 2014, img: 'WACKWATANABE.png' },
+                { name: 'WALLETKUN', supply: 999, img: 'WALLETKUN.png' },
+                { name: 'WANNACRY', supply: 2000, img: 'WANNACRY.gif' },
+                { name: 'WILLSPLIT', supply: 200, img: 'WILLSPLIT.png' },
+                { name: 'XASICBOOST', supply: 100, img: 'XASICBOOST.jpg' },
+                { name: 'XCPPEOPLE', supply: 100, img: 'XCPPEOPLE.png' },
+                { name: 'XEMANDJAPAN', supply: 100, img: 'XEMANDJAPAN.png' },
+                { name: 'XEMTATTOO', supply: 100, img: 'XEMTATTOO.png' },
+                { name: 'XEMURAI', supply: 300, img: 'XEMURAI.png' },
+                { name: 'YOMEGOX', supply: 100, img: 'YOMEGOX.png' },
+                { name: 'ZAIFGIRLS', supply: 1000, img: 'ZAIFGIRLS.png' },
+                { name: 'ZECFOTHEMOON', supply: 200, img: 'ZECFOTHEMOON.jpg' }
+            ]
+            
+            cards.forEach(card => {
+                const { name, supply, img } = card
+    
+                const col = `
+                    <div class="col">
+                        <div class="card mb-3">
+                            <img src="img/${img}" class="card-img-top" />
+                            <div class="card-body">
+                                <h5 class="card-title">${name}</h5>
+                                <a target="_blank" class="btn btn-outline-primary mb-1" href="https://xchain.io/asset/${name}">xchain</a>
+                                <a target="_blank" class="btn btn-outline-primary mb-1" href="https://rarejapanesenfts.com/nft/${name.toLowerCase()}">RareJapaneseNFTs</a>
+                                <a target="_blank" class="btn btn-outline-primary mb-1" href="http://kasaneate.starfree.jp/mc/card/#${name}">kasaneate</a>
+                            </div>
+                        </div>
+                    </div>
+                `
+    
+                row.innerHTML += col
+            })
+
+            // http://www.julianhaight.com/btcvalid.js
+            !function(){function r(r,t,e){var a;return a=Math.ceil(t/bpe)+1,a=e>a?e:a,buff=new Array(a),n(buff,r),buff}function n(r,t){var n,e;for(e=t,n=0;n<r.length;n++)r[n]=e&mask,e>>=bpe}function e(r,t){return t>>>r|t<<32-r}function a(r,t,n){return r&t^~r&n}function o(r,t,n){return r&t^r&n^t&n}function u(r){return e(2,r)^e(13,r)^e(22,r)}function f(r){return e(6,r)^e(11,r)^e(25,r)}function s(r){return e(7,r)^e(18,r)^r>>>3}function i(r){return e(17,r)^e(19,r)^r>>>10}function c(r,t){return r[15&t]+=i(r[t+14&15])+r[t+9&15]+s(r[t+1&15])}function _(r,t){var n=(65535&r)+(65535&t),e=(r>>16)+(t>>16)+(n>>16);return e<<16|65535&n}function h(){A=new Array(8),y=new Array(2),C=new Array(64),y[0]=y[1]=0,A[0]=1779033703,A[1]=3144134277,A[2]=1013904242,A[3]=2773480762,A[4]=1359893119,A[5]=2600822924,A[6]=528734635,A[7]=1541459225}function v(){var r,t,n,e,s,i,h,v,g,b,d=new Array(16);r=A[0],t=A[1],n=A[2],e=A[3],s=A[4],i=A[5],h=A[6],v=A[7];for(var m=0;16>m;m++)d[m]=C[(m<<2)+3]|C[(m<<2)+2]<<8|C[(m<<2)+1]<<16|C[m<<2]<<24;for(var p=0;64>p;p++)g=v+f(s)+a(s,i,h)+k[p],g+=16>p?d[p]:c(d,p),b=u(r)+o(r,t,n),v=h,h=i,i=s,s=_(e,g),e=n,n=t,t=r,r=_(g,b);A[0]+=r,A[1]+=t,A[2]+=n,A[3]+=e,A[4]+=s,A[5]+=i,A[6]+=h,A[7]+=v}function g(r,t){var n,e,a=0;e=y[0]>>3&63;var o=63&t;for((y[0]+=t<<3)<t<<3&&y[1]++,y[1]+=t>>29,n=0;t>n+63;n+=64){for(var u=e;64>u;u++)C[u]=r.charCodeAt(a++);v(),e=0}for(var u=0;o>u;u++)C[u]=r.charCodeAt(a++)}function b(){var r=y[0]>>3&63;if(C[r++]=128,56>=r)for(var t=r;56>t;t++)C[t]=0;else{for(var t=r;64>t;t++)C[t]=0;v();for(var t=0;56>t;t++)C[t]=0}C[56]=y[1]>>>24&255,C[57]=y[1]>>>16&255,C[58]=y[1]>>>8&255,C[59]=255&y[1],C[60]=y[0]>>>24&255,C[61]=y[0]>>>16&255,C[62]=y[0]>>>8&255,C[63]=255&y[0],v()}function d(){for(var r=new String,t=0;8>t;t++)for(var n=28;n>=0;n-=4)r+=x.charAt(A[t]>>>n&15);return r}function m(r){return h(),g(r,r.length),b(),d()}function p(r){if(0===r.length)return[];var t,n,e=[0];for(t=0;t<r.length;t++){var a=r[t];if(!(a in S))throw new Error("Non-base58 character");for(n=0;n<e.length;n++)e[n]*=D;e[0]+=S[a];var o=0;for(n=0;n<e.length;++n)e[n]+=o,o=e[n]>>8,e[n]&=255;for(;o;)e.push(255&o),o>>=8}for(t=0;"1"===r[t]&&t<r.length-1;t++)e.push(0);for(e=e.reverse(),output="",t=0;t<e.length;t++)output+=String.fromCharCode(e[t]);return output}function l(r){try{var t=p(r);if(25!=t.length)return!1;var n=t.substr(t.length-4),e=t.substr(0,t.length-4),a=w(m(w(m(e)))).substr(0,4);return n!=a?!1:!0}catch(o){return!1}}function w(r){for(var t="",n=0;n<r.length;n+=2)t+=String.fromCharCode(parseInt(r.substr(n,2),16));return t}for(bpe=0,mask=0,radix=mask+1,digitsStr="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_=!@#$%^&*()[]{}|;:,.<>/?`~ \\'\"+-",bpe=0;1<<bpe+1>1<<bpe;bpe++);bpe>>=1,mask=(1<<bpe)-1,radix=mask+1,one=r(1,1,1),t=new Array(0),ss=t,s0=t,s1=t,s2=t,s3=t,s4=t,s5=t,s6=t,s7=t,T=t,sa=t,mr_x1=t,mr_r=t,mr_a=t,eg_v=t,eg_u=t,eg_A=t,eg_B=t,eg_C=t,eg_D=t,md_q1=t,md_q2=t,md_q3=t,md_r=t,md_r1=t,md_r2=t,md_tt=t,primes=t,pows=t,s_i=t,s_i2=t,s_R=t,s_rm=t,s_q=t,s_n1=t,s_a=t,s_r2=t,s_n=t,s_b=t,s_d=t,s_x1=t,s_x2=t,s_aa=t,rpprb=t;for(var A,y,C,k=new Array(1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298),x="0123456789abcdef",q="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz",S={},B=0;B<q.length;B++)S[q.charAt(B)]=B;var D=58;window.checkAddress=l}();
+
+            const form = document.querySelector('form')
+            const result = document.querySelector('#result')
+
+            const get_address = (address, page = 1) => fetch(`${API_URL}address/${address}`).then((response) => response.json())
+
+            const get_balances = (address, page = 1) => fetch(`${API_URL}balances/${address}/${page}`).then((response) => response.json())
+
+            const get_all_balances = async (address) => {
+                result.innerHTML = 'Loading balances..'
+
+                let balances = [], mc_balances = [], missing_balances = []
+
+                const address_info = await get_address(address)
+                const asset_count = address_info.assets.held
+                const max = Math.ceil(asset_count / 500)
+
+                for(let i=1; i<=max; i++) {
+                    const chunk = await get_balances(address, i)
+
+                    balances = balances.concat(chunk.data)
+                }
+
+                balances.forEach(balance => {
+                    const { asset, quantity } = balance
+                    const hit = cards.filter(c => c.name === asset)[0]
+                    
+                    if(hit) {
+                        mc_balances.push(balance)
+                    }
+                })
+
+                cards.forEach(card => {
+                    const { name } = card
+                    const hit = balances.filter(b => b.asset === name)[0]
+
+                    if(!hit) {
+                        missing_balances.push(card)
+                    }
+                })
+
+                result.innerHTML = `<h4>This address contains ${mc_balances.length}/152 (${parseFloat(mc_balances.length / 152 * 100).toFixed(2)} %) Memorychain cards!</h4>`
+                
+                let html = 
+                    `<table class="table mb-5">
+                        <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Percentage of supply</th>
+                                <th scope="col">Total Supply</th>
+                            </tr>
+                        </thead>
+                    <tbody>`
+                
+                mc_balances.forEach(mcbal => {
+                    const { asset, quantity } = mcbal
+                    const card = cards.filter(c => c.name === asset)[0]
+                    const { supply } = card
+
+                    html += 
+                    `<tr>
+                        <td>${asset}</td>
+                        <td>${quantity}</td>
+                        <td>${parseFloat(quantity / supply * 100).toFixed(2)} %</td>
+                        <td>${supply}</td>
+                    </tr>`
+                })
+                
+                html +=
+                    `</tbody>
+                    </table>`
+                
+                result.innerHTML += html
+
+                if(missing_balances.length) {
+                    result.innerHTML += `<h4>This address is missing ${missing_balances.length}/152 (${parseFloat(missing_balances.length / 152 * 100).toFixed(2)} %) Memorychain cards</h4>`
+                
+                    let html = 
+                        `<table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Total Supply</th>
+                                </tr>
+                            </thead>
+                        <tbody>`
+                    
+                    missing_balances.forEach(bal => {
+                        const { name, supply } = bal
+
+                        html += 
+                        `<tr>
+                            <td>${name}</td>
+                            <td>${supply}</td>
+                        </tr>`
+                    })
+                    
+                    html +=
+                        `</tbody>
+                        </table>`
+                    
+                    result.innerHTML += html
+                }
+            }
+
+            form.querySelector('.btn').addEventListener('click', event => {
+                result.innerHTML = ''
+
+                const address = document.querySelector('#btcAddress').value
+
+                if(checkAddress(address)) {
+                    event.preventDefault()
+
+                    get_all_balances(address)
+                } else if(address !== '') {
+                    event.preventDefault()
+
+                    result.innerHTML = `<div class="alert alert-warning" role="alert">
+                        This isn't a valid BTC/XCP address
+                    </div>`
+                }
+            })
+        </script>        
+    </body>
+</html>
