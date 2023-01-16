@@ -10,6 +10,8 @@
         .card { width: 12rem; }
         .card h5 { font-size: 1.10rem; }
     </style>
+
+    <script src="js/bech32-js.js"></script>
 </head>
     <body>
         <div class="container mb-3">
@@ -2302,8 +2304,7 @@
             })
 
             function validateAddress(address) {
-                if(checkAddress(address)) {
-
+                if(checkAddress(address) || checkbech32(address) === 'OK') {
                     if(params?.address !== address) {
                         window.history.pushState('', '', `?address=${address}`)
                     } else {
